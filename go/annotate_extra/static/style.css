@@ -1,0 +1,9 @@
+/* canvas on image */
+.canvas-container {
+	position: relative;
+}
+.canvas-container .konva {
+	position: absolute;
+	top: 0;
+	left: 0;
+}

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body oncontextmenu="return false;">
+		<div class="canvas-container">
+			<div id="imageDiv"></div>
+			<div id="konvaDiv" class="konva"></div>
+		</div>
+		<div>
+			<button id="clearBtn">Clear</button>
+			<button id="prevBtn">Previous</button>
+			<button id="nextBtn">Next</button>
+		</div>
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+		<script src="https://unpkg.com/konva@6.0.0/konva.min.js"></script>
+		<script>
+			function loadImage() {
+				var img = $('<img>').attr('src', '/view?v=' + new Date().getTime());
+				$('#imageDiv').children().remove();
+				$('#imageDiv').append(img);
+				loadLabels();
+			}
+
+			let stage = null;
+			function loadLabels() {
+				$.get('/labels?v=' + new Date().getTime(), (resp) => {
+					let window = resp.Window;
+					if(stage) {
+						stage.destroy();
+					}
+					stage = new Konva.Stage({
+						container: '#konvaDiv',
+						width: window[2]-window[0],
+						height: window[3]-window[1],
+					});
+					let layer = new Konva.Layer();
+					for(let line of resp.Lines) {
+						let shp = new Konva.Line({
+							points: [line[0]-window[0], line[1]-window[1], line[2]-window[0], line[3]-window[1]],
+							stroke: 'yellow',
+							strokeWidth: 3,
+						});
+						layer.add(shp);
+					}
+					stage.add(layer);
+					layer.draw();
+
+					let curShape = null;
+					let updateLine = (x, y) => {
+						let pts = curShape.points();
+						curShape.points([pts[0], pts[1], x, y]);
+					};
+					stage.on('click', () => {
+						let pos = stage.getPointerPosition();
+						if(curShape == null) {
+							curShape = new Konva.Line({
+								points: [pos.x, pos.y, pos.x+1, pos.y+1],
+								stroke: 'yellow',
+								strokeWidth: 3,
+							});
+							layer.add(curShape);
+							layer.draw();
+						} else {
+							updateLine(pos.x, pos.y);
+							layer.batchDraw();
+							let pts = curShape.points();
+
+							// Submit the current lines plus this new one, then re-render completely.
+							let newLines = resp.Lines;
+							newLines.push([pts[0]+window[0], pts[1]+window[1], pts[2]+window[0], pts[3]+window[1]]);
+							$.post('/label', {labels: JSON.stringify(newLines)}, () => {
+								loadLabels();
+							});
+						}
+					});
+					stage.on('mousemove', () => {
+						if(curShape == null) {
+							return;
+						}
+						var pos = stage.getPointerPosition();
+						updateLine(pos.x, pos.y);
+						layer.batchDraw();
+					});
+				});
+			}
+
+			$('#clearBtn').click(function() {
+				$.post('/label', {labels: '[]'}, () => {
+					loadLabels();
+				});
+			});
+
+			$('#prevBtn').click(function() {
+				$.post('/prev', {}, () => {
+					loadImage();
+				});
+			});
+
+			$('#nextBtn').click(function() {
+				$.post('/next', {}, () => {
+					loadImage();
+				});
+			});
+
+			loadImage();
+		</script>
+	</body>
+</html>
