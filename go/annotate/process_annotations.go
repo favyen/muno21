@@ -1,7 +1,7 @@
 package main
 
 import (
-	"../lib"
+	"github.com/favyen/muno21/go/lib"
 
 	"encoding/json"
 	"io/ioutil"

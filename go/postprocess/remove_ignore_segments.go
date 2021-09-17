@@ -4,7 +4,7 @@ package main
 // (only if they don't appear in the ground truth graph)
 
 import (
-	"../lib"
+	"github.com/favyen/muno21/go/lib"
 	"github.com/mitroadmaps/gomapinfer/common"
 
 	"encoding/json"

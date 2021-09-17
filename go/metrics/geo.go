@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/mitroadmaps/gomapinfer/common"
-	"../lib"
+	"github.com/favyen/muno21/go/lib"
 
 	"fmt"
 	"os"
@@ -85,10 +85,22 @@ func evaluate(rect common.Rectangle, g1 *common.Graph, g2 *common.Graph) (precis
 func evaluateWithExtra(rect common.Rectangle, gt *common.Graph, proposed *common.Graph, extra *common.Graph) float64 {
 	precision, _ := evaluate(rect, extra, proposed)
 	_, recall := evaluate(rect, gt, proposed)
-	if precision == 0 || recall == 0 {
-		return 0
+	return (precision + recall) / 2
+}
+
+func getImprovement(base float64, inferred float64) float64 {
+	if base > 0.99 {
+		if inferred > 0.99 {
+			return 1
+		} else {
+			return -1
+		}
 	}
-	return 2*precision*recall/(precision+recall)
+	score := (inferred - base) / (1 - base)
+	if score < -1 {
+		score = -1
+	}
+	return score
 }
 
 func main() {
@@ -138,8 +150,7 @@ func main() {
 		extraGraph := common.GraphFromEdges(extraIndex.Search(rect))
 		score1 := evaluateWithExtra(rect, gtGraph, baseGraph, extraGraph)
 		score2 := evaluateWithExtra(rect, gtGraph, inferred, extraGraph)
-		improvement := (score2 - score1) / (1 - score1)
-		scores = append(scores, []interface{}{annotationIdx, improvement})
+		scores = append(scores, []interface{}{annotationIdx, getImprovement(score1, score2)})
 	}
 
 	outFname := filepath.Join(inferredDir, "geo.json")

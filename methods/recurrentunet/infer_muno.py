@@ -33,17 +33,17 @@ m.saver.restore(session, model_path)
 
 def apply_model(sat):
 	output = numpy.zeros((sat.shape[0], sat.shape[1]), dtype='uint8')
-	for x in range(0, sat.shape[0] - 2048, 512) + [sat.shape[0] - 2048]:
-		for y in range(0, sat.shape[1] - 2048, 512) + [sat.shape[1] - 2048]:
+	for x in list(range(0, sat.shape[0] - 2048, 512)) + [sat.shape[0] - 2048]:
+		for y in list(range(0, sat.shape[1] - 2048, 512)) + [sat.shape[1] - 2048]:
 			conv_input = sat[x:x+2048, y:y+2048, :].astype('float32') / 255.0
 			conv_output = session.run(m.outputs, feed_dict={
 				m.is_training: False,
 				m.inputs: [conv_input],
 			})[0, :, :]
-			startx = (2048 - 512) / 2
-			endx = (2048 + 512) / 2
-			starty = (2048 - 512) / 2
-			endy = (2048 + 512) / 2
+			startx = (2048 - 512) // 2
+			endx = (2048 + 512) // 2
+			starty = (2048 - 512) // 2
+			endy = (2048 + 512) // 2
 			if x == 0:
 				startx = 0
 			elif x >= sat.shape[0] - 2048 - 512 - 1:
@@ -79,12 +79,14 @@ def get_im(cluster):
 		ims[k] = im
 	return ims[k]
 
+thresholds = [60, 80, 100, 120, 140, 160, 180]
+
 for annotation_idx, annotation in enumerate(annotations):
 	cluster = annotation['Cluster']
 	if cluster['Region'] not in test_regions:
 		continue
 
-	out_fname = os.path.join(out_dir, '{}.graph'.format(annotation_idx))
+	out_fname = os.path.join(out_dir, str(thresholds[-1]), '{}.graph'.format(annotation_idx))
 	if os.path.exists(out_fname):
 		continue
 
@@ -109,10 +111,13 @@ for annotation_idx, annotation in enumerate(annotations):
 	output = apply_model(crop)
 
 	out_im_fname = os.path.join(out_dir, '{}.png'.format(annotation_idx))
-	out_tmp_fname = os.path.join(out_dir, '{}_tmp.graph'.format(annotation_idx))
 	skimage.io.imsave(out_im_fname, output)
-	subprocess.call(['python3', '../../python/discoverlib/mapextract.py', out_im_fname, '128', out_tmp_fname])
-	g = graph.read_graph(out_tmp_fname)
-	for vertex in g.vertices:
-		vertex.point = vertex.point.add(geom.Point(sx, sy))
-	g.save(out_fname)
+
+	for threshold in thresholds:
+		out_fname = os.path.join(out_dir, str(threshold), '{}.graph'.format(annotation_idx))
+		out_tmp_fname = os.path.join(out_dir, str(threshold), '{}_tmp.graph'.format(annotation_idx))
+		subprocess.call(['python3.6', '../../python/discoverlib/mapextract.py', out_im_fname, str(threshold), out_tmp_fname])
+		g = graph.read_graph(out_tmp_fname)
+		for vertex in g.vertices:
+			vertex.point = vertex.point.add(geom.Point(sx, sy))
+		g.save(out_fname)

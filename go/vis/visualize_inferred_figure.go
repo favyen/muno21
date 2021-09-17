@@ -1,7 +1,7 @@
 package main
 
 import (
-	"../lib"
+	"github.com/favyen/muno21/go/lib"
 	"github.com/mitroadmaps/gomapinfer/common"
 	"github.com/mitroadmaps/gomapinfer/image"
 
@@ -239,7 +239,7 @@ func main() {
 		oldIm := getJPG(label, oldSuffixes)
 		newGraph := lib.ReadGraph(filepath.Join(graphDir, label+"_2020-07-01.graph")).GridIndex(128)
 		oldGraph := lib.ReadGraph(filepath.Join(graphDir, label+"_2013-07-01.graph")).GridIndex(128)
-		extraGraph := lib.ReadGraph(filepath.Join(graphDir, label+"_2020-07-01_all.graph")).GridIndex(128)
+		extraGraph := lib.ReadGraph(filepath.Join(graphDir, label+"_2020-07-01_extra.graph")).GridIndex(128)
 
 		for _, item := range groups[label] {
 			inferredGraphs := make([]*common.Graph, len(inferredDirs))

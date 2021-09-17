@@ -1,0 +1,15 @@
+.year-container {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+}
+
+.year-container div {
+	margin-left: 5px;
+	display: flex;
+	flex-direction: column;
+}
+
+.year-container div img {
+	width: 100%;
+}

@@ -3,7 +3,7 @@ package main
 // Find large windows without any change.
 
 import (
-	"../lib"
+	"github.com/favyen/muno21/go/lib"
 	"github.com/mitroadmaps/gomapinfer/common"
 
 	"fmt"
@@ -15,52 +15,41 @@ import (
 const Dilation int = 16
 const Padding int = 0
 
-// Make sure that newg contains no road segments that are further than Dilation from orig.
-// And vice versa (in case map update method deletes a road incorrectly).
-func isError(orig *common.Graph, newg *common.Graph, window [4]int) bool {
+func getPixAndDilated(graph *common.Graph, window [4]int) ([][]bool, [][]uint8) {
 	dims := [2]int{
 		window[2]-window[0],
 		window[3]-window[1],
 	}
-	//log.Printf("... draw")
-	origPix := make([][]bool, dims[0])
-	newPix := make([][]bool, dims[0])
-	origDilate := make([][]uint8, dims[0])
-	newDilate := make([][]uint8, dims[0])
-	for i := range origPix {
-		origPix[i] = make([]bool, dims[1])
-		newPix[i] = make([]bool, dims[1])
-		origDilate[i] = make([]uint8, dims[1])
-		newDilate[i] = make([]uint8, dims[1])
+	pix := make([][]bool, dims[0])
+	dilate := make([][]uint8, dims[0])
+	for i := range pix {
+		pix[i] = make([]bool, dims[1])
+		dilate[i] = make([]uint8, dims[1])
 	}
-	for _, edge := range orig.Edges {
+	for _, edge := range graph.Edges {
 		sx := int(edge.Src.Point.X) - window[0]
 		sy := int(edge.Src.Point.Y) - window[1]
 		ex := int(edge.Dst.Point.X) - window[0]
 		ey := int(edge.Dst.Point.Y) - window[1]
 		for _, p := range common.DrawLineOnCells(sx, sy, ex, ey, dims[0], dims[1]) {
-			origPix[p[0]][p[1]] = true
-			origDilate[p[0]][p[1]] = 255
+			pix[p[0]][p[1]] = true
+			dilate[p[0]][p[1]] = 255
 		}
 	}
-	for _, edge := range newg.Edges {
-		sx := int(edge.Src.Point.X) - window[0]
-		sy := int(edge.Src.Point.Y) - window[1]
-		ex := int(edge.Dst.Point.X) - window[0]
-		ey := int(edge.Dst.Point.Y) - window[1]
-		for _, p := range common.DrawLineOnCells(sx, sy, ex, ey, dims[0], dims[1]) {
-			newPix[p[0]][p[1]] = true
-			newDilate[p[0]][p[1]] = 255
-		}
-	}
-	//log.Printf("... dilate")
-	lib.Dilate(origDilate, Dilation)
-	lib.Dilate(newDilate, Dilation)
+	lib.Dilate(dilate, Dilation)
+	return pix, dilate
+}
 
-	//log.Printf("... validate")
+// Make sure that newg contains no road segments that are further than Dilation from orig.
+// And vice versa (in case map update method deletes a road incorrectly).
+func isError(orig *common.Graph, newg *common.Graph, extra *common.Graph, window [4]int) bool {
+	origPix, origDilate := getPixAndDilated(orig, window)
+	newPix, newDilate := getPixAndDilated(newg, window)
+	_, extraDilate := getPixAndDilated(extra, window)
+
 	for i := range newPix {
 		for j := range newPix[i] {
-			if newPix[i][j] && origDilate[i][j] == 0 {
+			if newPix[i][j] && extraDilate[i][j] == 0 && origDilate[i][j] == 0 {
 				return true
 			}
 			if origPix[i][j] && newDilate[i][j] == 0 {
@@ -73,6 +62,7 @@ func isError(orig *common.Graph, newg *common.Graph, window [4]int) bool {
 }
 
 const BaseGraphSuffix = "_2013-07-01.graph"
+const ExtraGraphSuffix = "_2020-07-01_extra.graph"
 
 func main() {
 	annotationFname := os.Args[1]
@@ -112,6 +102,8 @@ func main() {
 		label := fmt.Sprintf("%s_%d_%d", k.Region, k.Tile[0], k.Tile[1])
 		baseg := lib.ReadGraph(filepath.Join(graphDir, label+BaseGraphSuffix))
 		baseIndex := baseg.GridIndex(128)
+		extrag := lib.ReadGraph(filepath.Join(graphDir, label+ExtraGraphSuffix))
+		extraIndex := extrag.GridIndex(128)
 
 		var count, errors int
 		for _, item := range items {
@@ -129,9 +121,10 @@ func main() {
 			}
 			inferredg := lib.ReadGraph(filepath.Join(inferredDir, fmt.Sprintf("%d.graph", item.Index)))
 			baseSubgraph := common.GraphFromEdges(baseIndex.Search(bigRect))
+			extraSubgraph := common.GraphFromEdges(extraIndex.Search(bigRect))
 
 			count++
-			if isError(baseSubgraph, inferredg, window) {
+			if isError(baseSubgraph, inferredg, extraSubgraph, window) {
 				//log.Println(item.Index)
 				errors++
 			}
@@ -168,4 +161,7 @@ func main() {
 	}
 	rate := float64(errors)/float64(count)
 	log.Println("error_rate =", rate)
+
+	outFname := filepath.Join(inferredDir, "error.json")
+	lib.WriteJSONFile(outFname, rate)
 }

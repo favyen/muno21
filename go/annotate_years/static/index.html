@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		Years:
+		<div class="year-container">
+		</div>
+		Visualization:
+		<div class="vis-container">
+		</div>
+		<div>
+			<button id="splitBtn">Split</button>
+			<input id="startInput" type="text" placeholder="Start year" value="0" />
+			<input id="endInput" type="text" placeholder="End year" value="0" />
+			<input id="partialInput" type="checkbox" /> Partial?
+			<button id="doneBtn">Done</button>
+		</div>
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+		<script src="https://unpkg.com/konva@6.0.0/konva.min.js"></script>
+		<script>
+			function loadImages(years) {
+				$('.year-container').children().remove();
+				years.forEach((year) => {
+					var div = $('<div>');
+					var span = $('<span>').text(year);
+					div.append(span);
+					var img = $('<img>').attr('src', '/view_image?year='+year+'&v=' + new Date().getTime());
+					div.append(img);
+					$('.year-container').append(div);
+				});
+			}
+
+			function loadVis() {
+				$('.vis-container').children().remove();
+				var img = $('<img>').attr('src', '/view_vis?v=' + new Date().getTime());
+				img.click((e) => {
+					console.log(e);
+												// Extend the labels with this line, then re-render the visualization.
+												let line = [pts[0]+window[0], pts[1]+window[1], pts[2]+window[0], pts[3]+window[1]];
+												$.post('/extend', {line: JSON.stringify(line)}, () => {
+													loadVis();
+												});
+				});
+				$('.vis-container').append(img);
+			}
+
+			function loadMeta() {
+				$.get('/meta?v=' + new Date().getTime(), (resp) => {
+					let window = resp.Window;
+					loadImages(resp.Years);
+					loadVis();
+				});
+			}
+
+			$('#splitBtn').click(function() {
+				$.post('/split', () => {
+					loadMeta();
+				});
+			});
+
+			$('#doneBtn').click(function() {
+				let params = {
+					'start': $('#startInput').val(),
+					'end': $('#endInput').val(),
+					'partial': $('#partialInput').prop('checked') ? 'yes' : 'no',
+				};
+				$('#startInput').val('0');
+				$('#endInput').val('0');
+				$('#partialInput').prop('checked', false);
+				$.post('/submit', params, () => {
+					loadMeta();
+				});
+			});
+
+			loadMeta();
+		</script>
+	</body>
+</html>

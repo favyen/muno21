@@ -15,7 +15,7 @@ package main
 // - onlynew: output is only the inferred components from inferred graph
 
 import (
-	"../lib"
+	"github.com/favyen/muno21/go/lib"
 	"github.com/mitroadmaps/gomapinfer/common"
 
 	"encoding/json"

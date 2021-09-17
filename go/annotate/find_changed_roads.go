@@ -3,7 +3,7 @@ package main
 // Find roads that changed (were added or removed) between all pairs of consecutive timestamps.
 
 import (
-	"./lib"
+	"github.com/favyen/muno21/go/lib"
 	"github.com/mitroadmaps/gomapinfer/common"
 	//"github.com/mitroadmaps/gomapinfer/image"
 

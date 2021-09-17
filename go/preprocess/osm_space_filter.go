@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/mitroadmaps/gomapinfer/common"
-	"./lib"
+	"github.com/favyen/muno21/go/lib"
 
 	"fmt"
 	"log"

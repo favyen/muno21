@@ -41,8 +41,6 @@ model.restoreModel(model_path)
 gt_prob_placeholder = np.zeros((1,352,352,14))
 gt_vector_placeholder = np.zeros((1,352,352,12))
 gt_seg_placeholder = np.zeros((1,352,352,1))
-v_thr = 0.05
-e_thr = 0.05
 snap_dist = 15
 snap_w = 50
 
@@ -72,12 +70,14 @@ def get_im(k):
 	return ims[k]
 
 PADDING = 128
+thresholds = [2, 4, 5, 6, 8, 10, 15, 20]
 
 for annotation_idx, annotation in enumerate(annotations):
 	cluster = annotation['Cluster']
 	if cluster['Region'] not in test_regions:
 		continue
-	out_fname = os.path.join(out_dir, '{}.graph'.format(annotation_idx))
+
+	out_fname = os.path.join(out_dir, str(thresholds[-1]), '{}.graph'.format(annotation_idx))
 	if os.path.exists(out_fname):
 		continue
 
@@ -124,15 +124,18 @@ for annotation_idx, annotation in enumerate(annotations):
 	output = np.divide(output, mask)
 	output = output[32:2048+32,32:2048+32,:]
 	output_file = '/tmp/sat2graph.p'
-	graph = DecodeAndVis(output, output_file, thr=v_thr, edge_thr = e_thr, angledistance_weight=snap_w, snap_dist = snap_dist, snap=True, imagesize = 2048)
-	graph = simpilfyGraph(graph)
 
-	g = munograph.Graph()
-	vertex_map = {}
-	for k in graph.keys():
-		p = geom.Point(rect.start.x+k[1], rect.start.y+k[0])
-		vertex_map[k] = g.add_vertex(p)
-	for n1, v in graph.items():
-		for n2 in v:
-			g.add_bidirectional_edge(vertex_map[n1], vertex_map[n2])
-	g.save(out_fname)
+	for threshold in thresholds:
+		graph = DecodeAndVis(output, output_file, thr=threshold/100, edge_thr=threshold/100, angledistance_weight=snap_w, snap_dist = snap_dist, snap=True, imagesize = 2048)
+		graph = simpilfyGraph(graph)
+
+		g = munograph.Graph()
+		vertex_map = {}
+		for k in graph.keys():
+			p = geom.Point(rect.start.x+k[1], rect.start.y+k[0])
+			vertex_map[k] = g.add_vertex(p)
+		for n1, v in graph.items():
+			for n2 in v:
+				g.add_bidirectional_edge(vertex_map[n1], vertex_map[n2])
+		out_fname = os.path.join(out_dir, str(threshold), '{}.graph'.format(annotation_idx))
+		g.save(out_fname)

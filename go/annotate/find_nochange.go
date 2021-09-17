@@ -3,7 +3,7 @@ package main
 // Find large windows without any change.
 
 import (
-	"../lib"
+	"github.com/favyen/muno21/go/lib"
 	"github.com/mitroadmaps/gomapinfer/common"
 
 	"encoding/json"

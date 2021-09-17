@@ -215,6 +215,10 @@ if __name__ == '__main__':
 	test_fname = sys.argv[5]
 	out_dir = sys.argv[6]
 	mode = sys.argv[7] # either extend or infer
+	threshold = sys.argv[8]
+
+	THRESHOLD_BRANCH = float(threshold)
+	THRESHOLD_FOLLOW = float(threshold)
 
 	base_graph_suffix = '_2013-07-01.graph'
 	im_suffix = ['_2020.jpg', '_2019.jpg', '_2018.jpg']

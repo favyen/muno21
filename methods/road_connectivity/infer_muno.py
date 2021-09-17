@@ -22,6 +22,7 @@ from utils import viz_util
 import numpy
 import skimage.io
 import skimage.morphology
+import sys
 import subprocess
 
 from PIL import Image
@@ -121,12 +122,14 @@ def get_im(cluster):
 		ims[k] = im
 	return ims[k]
 
+thresholds = [60, 80, 100, 120, 140, 160, 180]
+
 for annotation_idx, annotation in enumerate(annotations):
 	cluster = annotation['Cluster']
 	if cluster['Region'] not in test_regions:
 		continue
 
-	out_fname = os.path.join(out_dir, '{}.graph'.format(annotation_idx))
+	out_fname = os.path.join(out_dir, str(thresholds[-1]), '{}.graph'.format(annotation_idx))
 	if os.path.exists(out_fname):
 		continue
 
@@ -150,15 +153,18 @@ for annotation_idx, annotation in enumerate(annotations):
 
 	output = get_output(crop)
 
-	selem = skimage.morphology.disk(2)
-	output = skimage.morphology.binary_dilation(output > 128, selem)
-	output = output.astype('uint8')*255
+	for threshold in thresholds:
+		out_im_fname = os.path.join(out_dir, str(threshold), '{}.png'.format(annotation_idx))
+		out_tmp_fname = os.path.join(out_dir, str(threshold), '{}_tmp.graph'.format(annotation_idx))
+		out_fname = os.path.join(out_dir, str(threshold), '{}.graph'.format(annotation_idx))
 
-	out_im_fname = os.path.join(out_dir, '{}.png'.format(annotation_idx))
-	out_tmp_fname = os.path.join(out_dir, '{}_tmp.graph'.format(annotation_idx))
-	skimage.io.imsave(out_im_fname, output)
-	subprocess.call(['python3', '../../python/discoverlib/mapextract.py', out_im_fname, '128', out_tmp_fname])
-	g = graph.read_graph(out_tmp_fname)
-	for vertex in g.vertices:
-		vertex.point = vertex.point.add(geom.Point(sx, sy))
-	g.save(out_fname)
+		selem = skimage.morphology.disk(2)
+		output = skimage.morphology.binary_dilation(output > 128, selem)
+		output = output.astype('uint8')*255
+		skimage.io.imsave(out_im_fname, output)
+
+		subprocess.call(['python3', '../../python/discoverlib/mapextract.py', out_im_fname, str(threshold), out_tmp_fname])
+		g = graph.read_graph(out_tmp_fname)
+		for vertex in g.vertices:
+			vertex.point = vertex.point.add(geom.Point(sx, sy))
+		g.save(out_fname)
