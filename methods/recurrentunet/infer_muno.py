@@ -16,16 +16,11 @@ from discoverlib import geom, graph
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 
-#model_path = sys.argv[1]
-#jpg_dir = sys.argv[2]
-#annotation_fname = sys.argv[3]
-#test_fname = sys.argv[4]
-#out_dir = sys.argv[5]
-model_path = 'model/model'
-jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
-annotation_fname = '/mnt/tmp/mapupdate/annotations.json'
-test_fname = '/mnt/tmp/mapupdate/test.csv'
-out_dir = '/mnt/tmp/mapupdate/recurrentunet/out/'
+model_path = sys.argv[1]
+jpg_dir = sys.argv[2]
+annotation_fname = sys.argv[3]
+test_fname = sys.argv[4]
+out_dir = sys.argv[5]
 
 m = model.Model(big=True)
 session = tf.Session()
@@ -116,7 +111,7 @@ for annotation_idx, annotation in enumerate(annotations):
 	for threshold in thresholds:
 		out_fname = os.path.join(out_dir, str(threshold), '{}.graph'.format(annotation_idx))
 		out_tmp_fname = os.path.join(out_dir, str(threshold), '{}_tmp.graph'.format(annotation_idx))
-		subprocess.call(['python3.6', '../../python/discoverlib/mapextract.py', out_im_fname, str(threshold), out_tmp_fname])
+		subprocess.call(['python3', '../../python/discoverlib/mapextract.py', out_im_fname, str(threshold), out_tmp_fname])
 		g = graph.read_graph(out_tmp_fname)
 		for vertex in g.vertices:
 			vertex.point = vertex.point.add(geom.Point(sx, sy))

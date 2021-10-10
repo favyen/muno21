@@ -86,7 +86,9 @@ Note that two versions of the road network are available in this format.
 
 The original OpenStreetMap data is available in the `graphs/osm/` folder, in
 files encoded under the OSM PBF format. Methods may take advantage of the
-additional information in these files, such as various road attributes.
+additional information in these files, such as various road attributes. To
+convert longitude-latitude coordinates to pixel coordinates, see `go/lib/regions.go`
+and `go/preprocess/osm_to_graph.go`.
 
 
 ### Task
@@ -106,10 +108,10 @@ the training regions (see `train.json`). To facilitate self-supervised learning,
 methods may also use all aerial imagery in the test regions (see `test.json`),
 but only road network data from 2012 or 2013 in those regions.
 
-During inference, a method has access to the same data that is available during
-training. It additionally has access to road network data from all regions at
-the pre-change timestamp, although since this is usually 2012 or 2013, this
-usually does not actually provide any more data.
+During inference, for a given scenario, a method has access to the same data
+that is available during training. It additionally has access to road network
+data from all regions at the pre-change timestamp, although since this is
+usually 2012 or 2013, this usually does not actually provide any more data.
 
 The method should output a road network corresponding to the physical roads
 visible in the aerial imagery at the post-change timestamp inside the bounding

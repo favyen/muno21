@@ -14,14 +14,10 @@ sys.path.append('../../python')
 from discoverlib import geom, graph
 import model
 
-#train_csv = sys.argv[1]
-#jpg_dir = sys.argv[2]
-#angles_dir = sys.argv[3]
-#model_path = sys.argv[4]
-train_csv = '/mnt/tmp/mapupdate/train.csv'
-jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
-angles_dir = '/mnt/tmp/mapupdate/angles/'
-model_path = './model-normal-suffix/model'
+train_csv = sys.argv[1]
+jpg_dir = sys.argv[2]
+angles_dir = sys.argv[3]
+model_path = sys.argv[4]
 
 TRAIN_YEARS = ['2016', '2017', '2018', '2019', '2020']
 WINDOW_SIZE = 256

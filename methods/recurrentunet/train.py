@@ -12,12 +12,9 @@ import subprocess
 import tensorflow as tf
 import time
 
-#sat_path = sys.argv[1]
-#osm_path = sys.argv[2]
-#model_path = sys.argv[3]
-sat_path = '/mnt/tmp/mapupdate/roadconnectivity/dataset/train_crops/images/'
-osm_path = '/mnt/tmp/mapupdate/roadconnectivity/dataset/train_crops/gt/'
-model_path = 'model/model'
+sat_path = sys.argv[1]
+osm_path = sys.argv[2]
+model_path = sys.argv[3]
 
 print 'loading train tiles'
 train_tiles = dataset.load_tiles(sat_path, osm_path, 'train')

@@ -31,12 +31,13 @@ Image.MAX_IMAGE_PIXELS = None
 sys.path.append('../../python')
 from discoverlib import geom, graph
 
-jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
-annotation_fname = '/mnt/tmp/mapupdate/annotations.json'
-test_fname = '/mnt/tmp/mapupdate/test.csv'
-out_dir = '/mnt/tmp/mapupdate/roadconnectivity/out/'
+jpg_dir = sys.argv[1]
+annotation_fname = sys.argv[2]
+test_fname = sys.argv[3]
+out_dir = sys.argv[4]
+model_path = sys.argv[5]
 
-model_path = '/ssd_scratch/cvit/anil.k/exp/deepglobe100/dg_stak_mtl/model_best.pth.tar'
+#model_path = '/ssd_scratch/cvit/anil.k/exp/deepglobe100/dg_stak_mtl/model_best.pth.tar'
 model_name = 'StackHourglassNetMTL'
 
 config = torch.load(model_path)["config"]

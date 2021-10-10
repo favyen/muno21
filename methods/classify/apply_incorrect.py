@@ -27,26 +27,28 @@ Image.MAX_IMAGE_PIXELS = None
 # then this can be run on the "fused" graphs
 # and finally the resulting graphs should be fused with the base graphs
 
-#annotation_fname = sys.argv[1]
-#model_path = sys.argv[2]
-#jpg_dir = sys.argv[3]
-#mode = sys.argv[4]
-#in_dir = sys.argv[5]
-#out_dir = sys.argv[6]
+annotation_fname = sys.argv[1]
+model_path = sys.argv[2]
+jpg_dir = sys.argv[3]
+mode = sys.argv[4]
+in_dir = sys.argv[5]
+out_dir = sys.argv[6]
 
 #annotation_fname = '/mnt/tmp/mapupdate/annotations.json'
 #model_path = 'model/incorrect/model'
 #jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
 #mode = 'incorrect'
-#in_dir = '/mnt/tmp/mapupdate/roadtracerpp/normal/out-extend-remove-fuse-onlynew/'
-#out_dir = '/mnt/tmp/mapupdate/roadtracerpp/normal/out-extend-filter-incorrect/'
+#in_dir = '/mnt/tmp/mapupdate/roadtracerpp/normal/infer/out-remove-fuse-onlynew/60/'
+#out_dir = '/mnt/tmp/mapupdate/roadtracerpp/normal/infer/filter-incorrect/60/'
 
-annotation_fname = '/mnt/tmp/mapupdate/annotations.json'
-model_path = 'model/construct/model'
-jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
-mode = 'construct'
-in_dir = '/mnt/tmp/mapupdate/roadtracerpp/normal/out-extend-remove-fuse-onlynew/'
-out_dir = '/mnt/tmp/mapupdate/roadtracerpp/normal/out-extend-filter-construct/'
+#annotation_fname = '/mnt/tmp/mapupdate/annotations.json'
+#model_path = 'model/construct/model'
+#jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
+#mode = 'construct'
+#in_dir = '/mnt/tmp/mapupdate/roadtracerpp/normal/infer/out-remove-fuse-onlynew/60/'
+#out_dir = '/mnt/tmp/mapupdate/roadtracerpp/normal/infer/filter-construct/60/'
+
+print(in_dir, out_dir)
 
 with open(annotation_fname, 'r') as f:
 	annotations = json.load(f)

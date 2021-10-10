@@ -11,16 +11,11 @@ import sys
 import tensorflow as tf
 import time
 
-#mode = sys.argv[1]
-#data_dir = sys.argv[2]
-#jpg_dir = sys.argv[3]
-#train_fname = sys.argv[4]
-#model_path = sys.argv[5]
-mode = 'construct'
-data_dir = '/mnt/tmp/mapupdate/classify/'
-jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
-train_fname = '/mnt/tmp/mapupdate/train.csv'
-model_path = 'model/{}/model'.format(mode)
+mode = sys.argv[1]
+data_dir = sys.argv[2]
+jpg_dir = sys.argv[3]
+train_fname = sys.argv[4]
+model_path = sys.argv[5]
 
 if mode == 'delroad':
 	target_precision = 0.9

@@ -24,28 +24,37 @@ Image.MAX_IMAGE_PIXELS = None
 # or another method can be run on the delroad outputs to combine the methods
 #  (in this case, fusing should be done against the delroad outputs instead of the base graphs...?)
 
-#annotation_fname = sys.argv[1]
-#model_path = sys.argv[2]
-#jpg_dir = sys.argv[3]
-#mode = sys.argv[4]
-#in_dir = sys.argv[5]
-#out_dir = sys.argv[6]
-annotation_fname = '/mnt/tmp/mapupdate/annotations.json'
-model_path = 'model/construct/model'
-jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
-mode = 'deconstruct'
-in_dir = '/mnt/tmp/mapupdate/identity/'
-out_dir = '/mnt/tmp/mapupdate/classify/deconstruct/'
+annotation_fname = sys.argv[1]
+model_path = sys.argv[2]
+jpg_dir = sys.argv[3]
+mode = sys.argv[4]
+in_dir = sys.argv[5]
+out_dir = sys.argv[6]
+threshold = float(sys.argv[7])
+
+#annotation_fname = '/mnt/tmp/mapupdate/annotations.json'
+#model_path = 'model/delroad/model'
+#jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
+#mode = 'delroad'
+#in_dir = '/mnt/tmp/mapupdate/identity/'
+#out_dir = '/mnt/tmp/mapupdate/classify/delroad/out/995/'
+#threshold = 0.995
+
+#annotation_fname = '/mnt/tmp/mapupdate/annotations.json'
+#model_path = 'model/construct/model'
+#jpg_dir = '/mnt/tmp/mapupdate/naip/jpg/'
+#mode = 'deconstruct'
+#in_dir = '/mnt/tmp/mapupdate/identity/'
+#out_dir = '/mnt/tmp/mapupdate/classify/deconstruct/out/90/'
+#threshold = 0.90
 
 with open(annotation_fname, 'r') as f:
 	annotations = json.load(f)
 
 if mode == 'delroad':
 	m = model.Model(in_channels=3)
-	threshold = 0.995
 elif mode == 'deconstruct':
 	m = model.Model(in_channels=6)
-	threshold = 0.9
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -103,7 +112,7 @@ for annotation_idx, annotation in enumerate(annotations):
 		if prob <= threshold:
 			continue
 
-		print(rs.src().point.sub(window_origin), rs.dst().point.sub(window_origin), prob, [geom.Point(p3[0], p3[1]).sub(rect.start) for p3 in points3])
+		#print(rs.src().point.sub(window_origin), rs.dst().point.sub(window_origin), prob, [geom.Point(p3[0], p3[1]).sub(rect.start) for p3 in points3])
 
 		# bad rs! remove it
 		for edge in rs.edges:

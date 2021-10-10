@@ -1,28 +1,21 @@
-This is the code for "Road Detection and Centerline Extraction via Deep Recurrent Convolutional Neural Network U-Net".
+Source
+------
 
-You will first need to follow dataset preparation instructions from RoadTracer code. You will also need to copy discoverlib folder from RoadTracer code.
+We adapt the [original code](https://github.com/xiachangxue/Road-detection/) for MUNO21.
 
-Suppose the imagery is in `/data/imagery` and the masks are in `/data/masks`. First, train the model:
 
-	mkdir /data/rcnnunet_model/
-	mkdir /data/rcnnunet_model/model_latest
-	mkdir /data/rcnnunet_model/model_best
-	cd roadtracer-master/
-	python ./rcnnunet/train.py ./data/imagery/ ./data/masks/ ./data/rcnnunet_model/
+Training
+--------
 
-Then, you can run inference on the test regions:
+Prepare the dataset per instructions for road_connectivity approach. Then train the model:
 
-	mkdir outputs
-	python infer.py /data/imagery/ /data/rcnnunet_model/
+	mkdir model
+	python train.py /data/deepglobe/train_crops/images/ /data/deepglobe/train_crops/gt/ model/model
 
-The latest step is to transfer the segmentation to graph(if it's needed)
-Extract graphs from the segmentation outputs:
+Inference
+---------
 
-	python ../utils/mapextract.py outputs/boston.png 50 outputs/boston.graph
+Apply the model:
 
-Correct the coordinates of the graph vertices by adding an offset (which depends on the region). mapextract.py outputs coordinates corresponding to the imagery. However, the origin of the test image may not be at (0, 0), and fix.py accounts for this.
-
-	python ../utils/fix.py boston outputs/boston.graph outputs/boston.fix.graph
-Reference
-RoadTracer: Automatic Extraction of Road Networks from Aerial Images:https://roadmaps.csail.mit.edu/roadtracer.pdf
-
+	mkdir -p outputs/{60,80,100,120,140,160,180}
+	python infer_muno.py model/model /data/naip/jpg/ /data/annotations.json /data/test.json outputs/
