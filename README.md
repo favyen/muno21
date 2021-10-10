@@ -41,8 +41,10 @@ needed, depending on the particular method:
 - [rdp](https://pypi.org/project/rdp/)
 
 
-Obtain the MUNO21 Dataset
--------------------------
+Dataset
+-------
+
+### Obtaining the Dataset
 
 Download and extract the MUNO21 dataset:
 
@@ -63,16 +65,104 @@ corresponding to the scenarios:
 	export PYTHONPATH=../python/
 	python ../methods/identity/run.py /data/graphs/graphs/ /data/annotations.json /data/identity/
 
+
+### Data Format
+
+Aerial imagery is available as JPEG images in the `naip/jpg/` folder.
+These images are obtained from [NAIP](https://www.fsa.usda.gov/programs-and-services/aerial-photography/imagery-programs/naip-imagery/).
+
+Road networks are available as `.graph` files in the `graphs/graphs` folder.
+See https://favyen.com/muno21/graph-format.txt for a description of the data
+format of these files. Note that, in contrast to some other datasets, road
+networks are NOT represented as images -- instead, they are undirected spatial
+networks, where vertices are labeled with (x,y) coordinates and edges
+correspond to road segments. The (x,y) coordinates indicate pixels in the
+corresponding JPEG image.
+
+Note that two versions of the road network are available in this format.
+
+* {region_x_y_time}.graph: only includes public roads suitable for motor vehicles.
+* {region_x_y_time}_all.graph: includes most other "ways" that appear in OpenStreetMap.
+
+The original OpenStreetMap data is available in the `graphs/osm/` folder, in
+files encoded under the OSM PBF format. Methods may take advantage of the
+additional information in these files, such as various road attributes.
+
+
+### Task
+
+The MUNO21 dataset includes 1,294 map update scenarios.
+Each scenario specifies a pre-change timestamp, post-change timestamp, and a
+bounding box window where some change occurred.
+
+The input is aerial imagery from each of four years, along with road network
+data from a specific pre-change year (usually 2012 or 2013).
+
+The ground truth label is the road network from a specific post-change year
+(usually 2018 or 2019) inside the bounding box window.
+
+During training, a method may use all aerial imagery and road network data from
+the training regions (see `train.json`). To facilitate self-supervised learning,
+methods may also use all aerial imagery in the test regions (see `test.json`),
+but only road network data from 2012 or 2013 in those regions.
+
+During inference, a method has access to the same data that is available during
+training. It additionally has access to road network data from all regions at
+the pre-change timestamp, although since this is usually 2012 or 2013, this
+usually does not actually provide any more data.
+
+The method should output a road network corresponding to the physical roads
+visible in the aerial imagery at the post-change timestamp inside the bounding
+box window.
+
+
+### Metrics
+
+Methods are compared in terms of their precision-recall curves.
+
+Recall measures how much closer the output road networks are to the ground
+truth data (post-change road network) than the pre-change road networks. Two
+alternative ways of comparing road networks, PixelF1 and APLS, are used.
+
+Precision measures how frequently a method makes incorrect modifications to the
+road network in scenarios where no change has occurred between the pre- and
+post-change timestamps.
+
+A method may expose a single real-valued parameter that provides a tradeoff
+between precision and recall. For example, a method that infers road networks
+using image segmentation may expose the segmentation probability confidence
+threshold for the "road" class as a parameter -- increasing this threshold
+generally provides higher precision but lower recall. Methods are compared in
+terms of their precision-recall curves when varying this parameter.
+
+
+### Scenario Specification
+
+Scenarios are specified in the `annotations.json` file. Let `annotation` refer
+to one annotation JSON object.
+
+Each scenario specifies a spatial window in pixel coordinates where the map has
+changed: `annotation['Cluster']['Window']`. A method may use imagery and road
+network data outside that window, but its output road network should span that
+window plus 128-pixel padding; it will be evaluated only inside the window (with
+no padding), but the padding ensures that the evaluation metrics are computed
+correctly along the boundary of the window.
+
+Currently, the pre-change timestamp is always 2013, and the post-change
+timestamp is always the year of the most recent aerial image (either 2018 or
+2019).
+
+
 Infer Road Networks
 -------------------
 
 Refer to the documentation in methods/{classify,recurrentunet,road_connectivity,roadtracerpp,sat2graph}.
 
 Each method besides `classify` is taken from a publicly available
-implementation (see README-mapupdate in each method directory.) We make minor
-changes to make them work with MUNO21. We also find many bugs in
-road_connectivity which we have to manually fix, and we adapt Sat2Graph to work
-with Python3. road_connectivity and recurrentunet will only work with Python 2.7.
+implementation (see README in each method directory.) We make minor changes to
+make them work with MUNO21. We also find many bugs in road_connectivity which
+we have to manually fix, and we adapt Sat2Graph to work with Python3.
+road_connectivity and recurrentunet will only work with Python 2.7.
 
 
 Post-process Inferred Road Networks
